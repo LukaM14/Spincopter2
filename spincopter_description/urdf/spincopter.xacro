@@ -23,15 +23,15 @@
   <!-- Properties -->
   <xacro:property name="namespace" value="$(arg namespace)" />
   <xacro:property name="rotor_velocity_slowdown_sim" value="10" />
-  <xacro:property name="use_mesh_file" value="false" />
+  <xacro:property name="use_mesh_file" value="False" />
   <xacro:property name="mesh_file" value="package://rotors_description/meshes/firefly.dae" />
   <xacro:property name="mass" value="1.5" /> <!-- [kg] -->
   <xacro:property name="body_width" value="0.1" /> <!-- [m] -->
   <xacro:property name="body_height" value="0.16" /> <!-- [m] -->
   <xacro:property name="mass_rotor" value="0.005" /> <!-- [kg] -->
   <xacro:property name="arm_length" value="0.215" /> <!-- [m] -->
-  <xacro:property name="rotor_offset_top1" value="0.027" /> <!-- [m] -->
-  <xacro:property name="rotor_offset_top2" value="0.010" />
+  <xacro:property name="rotor_offset_top1" value="0.03" /> <!-- [m] -->
+  <xacro:property name="rotor_offset_top2" value="0.018" />
   <xacro:property name="radius_rotor" value="0.1" /> <!-- [m] -->
   <xacro:property name="motor_constant" value="8.54858e-06" /> <!-- [kg m/s^2] -->
   <xacro:property name="moment_constant" value="0.016" /> <!-- [m] -->
@@ -50,8 +50,39 @@
   <xacro:property name="link_offset_base" value="0.1575" />
 
 
+  <!-- Aileron properties -->
+  <!--<xacro:property name="aileron_length" value="0.053" /> --> <!-- [m] -->
+  <!--<xacro:property name="aileron_width" value="0.349" />--> <!-- [m] -->
+  <!--<xacro:property name="aileron_height" value="0.013" /> --> <!-- [m] -->
+  <!--<xacro:property name="aileron_min_angle" value="-0.349066" /> --> <!-- [rad] -->
+  <!--<xacro:property name="aileron_max_angle" value="0.349066" /> --> <!-- [rad] -->
+  <!--<xacro:property name="aileron_color" value="Red" />-->
+
+  <!-- Component masses -->
+  <!--<xacro:property name="mass_aileron" value="0.1" /> --> <!-- [kg] -->
+  <xacro:property name="mass_flap" value="0.1" /> <!-- [kg] -->
+
+  <!-- Flap properties -->
+  <xacro:property name="flap_length" value="0.076" /> <!-- [m] -->
+  <xacro:property name="flap_width" value="0.459" /> <!-- [m] -->
+  <xacro:property name="flap_height" value="0.016" /> <!-- [m] -->
+  <xacro:property name="flap_min_angle" value="0.0" /> <!-- [rad] -->
+  <xacro:property name="flap_max_angle" value="1.0" /> <!-- [rad] -->
+  <xacro:property name="flap_color" value="Red" />
+  <xacro:property name="use_mesh" value="true" />
+  <xacro:property name="flap_offset_x" value="0.04" />
+  <xacro:property name="flap_offset_y" value="0.28" />      
+  <xacro:property name="flap_offset_z" value="0.02" />
+    <!-- Constants -->
+  <xacro:property name="PI" value="3.1415926535897931" />
+
+
   <!-- Property Blocks -->
   <xacro:property name="body_inertia">
+    <inertia ixx="0.0347563" ixy="0.0" ixz="0.0" iyy="0.0458929" iyz="0.0" izz="0.0977" /> <!-- [kg m^2] [kg m^2] [kg m^2] [kg m^2] [kg m^2] [kg m^2] -->
+  </xacro:property>
+
+  <xacro:property name="link_inertia">
     <inertia ixx="0.0347563" ixy="0.0" ixz="0.0" iyy="0.0458929" iyz="0.0" izz="0.0977" /> <!-- [kg m^2] [kg m^2] [kg m^2] [kg m^2] [kg m^2] [kg m^2] -->
   </xacro:property>
 
@@ -60,8 +91,18 @@
     <xacro:box_inertia x="${radius_rotor}" y="0.015" z="0.003" mass="${mass_rotor*rotor_velocity_slowdown_sim}" />
   </xacro:property>
 
+    <!-- Inertia of the aileron, assuming it is a cuboid -->
+  <xacro:property name="aileron_inertia">
+    <xacro:box_inertia x="${aileron_length}" y="${aileron_width}" z="${aileron_height}" mass="${mass_aileron}" />
+  </xacro:property>
+
+    <!-- Inertia of the flap, assuming it is a cuboid -->
+  <xacro:property name="flap_inertia">
+    <xacro:box_inertia x="${flap_length}" y="${flap_width}" z="${flap_height}" mass="${mass_flap}" />
+  </xacro:property>
+
   <!-- Included URDF Files -->
-  <xacro:include filename="$(find spincopter_description)/urdf/multirotor_base.xacro" />
+  <xacro:include filename="$(find spincopter_description)/urdf/rotor_wing_base.xacro" />
 
   <!-- Instantiate multirotor_base_macro once -->
   <xacro:multirotor_base_macro
@@ -86,7 +127,7 @@
     color="Blue"
     >
     <origin xyz="${link_offset_base} 0 ${link_offset_top}" rpy="0 ${link_roll} 0" />
-    <xacro:insert_block name="rotor_inertia" />
+    <xacro:insert_block name="link_inertia" />
   </xacro:link_o>
 
     <xacro:link_o
@@ -95,11 +136,11 @@
     mass_link="${link_mass}"
     radius_link="${link_radius}"
     length_link="${arm_length}"
-    link_number="1"
+    link_number="2"
     color="Red"
     >
     <origin xyz="-${link_offset_base} 0 ${link_offset_top}" rpy="0 ${link_roll} 0" />
-    <xacro:insert_block name="rotor_inertia" />
+    <xacro:insert_block name="link_inertia" />
   </xacro:link_o>
 
   <!-- Instantiate rotors -->
@@ -127,7 +168,7 @@
 
   <xacro:vertical_rotor robot_namespace="${namespace}"
     suffix="back_right"
-    direction="cw"
+    direction="ccw"
     motor_constant="${motor_constant}"
     moment_constant="${moment_constant}"
     parent="${namespace}/base_link"
@@ -146,6 +187,87 @@
     <xacro:insert_block name="rotor_inertia" />
   </xacro:vertical_rotor>
 
- 
+ <!-- Instantiate the ailerons -->
+ <!--
+  <xacro:control_surface
+    robot_namespace="${namespace}"
+    surface_name="aileron_left"
+    parent="${namespace}/base_link"
+    mass_surface="${mass_aileron}"
+    min_angle="${aileron_min_angle}"
+    max_angle="${aileron_max_angle}"
+    color="${aileron_color}"
+    use_mesh_file="${use_mesh}"
+    mesh_file="package://rotors_description/meshes/techpod/techpod_aileron_left.dae"
+    surface_length="${aileron_length}"
+    surface_width="${aileron_width}"
+    surface_height="${aileron_height}">
+    <axis xyz="0 -1 0" />  
+    <origin xyz="0.1095 0.99245 0.115" rpy="0 0 0" />   
+    <origin xyz="0 0 0" rpy="0 0 0" /> 
+    <xacro:insert_block name="aileron_inertia" />
+  </xacro:control_surface>
+
+  <xacro:control_surface
+    robot_namespace="${namespace}"
+    surface_name="aileron_right"
+    parent="${namespace}/base_link"
+    mass_surface="${mass_aileron}"
+    min_angle="${aileron_min_angle}"
+    max_angle="${aileron_max_angle}"
+    color="${aileron_color}"
+    use_mesh_file="${use_mesh}"
+    mesh_file="package://rotors_description/meshes/techpod/techpod_aileron_right.dae"
+    surface_length="${aileron_length}"
+    surface_width="${aileron_width}"
+    surface_height="${aileron_height}">
+    <axis xyz="0 1 0" />   
+    <origin xyz="0.1095 -0.99245 0.115" rpy="0 0 0" />   
+    <origin xyz="0 0 0" rpy="0 0 0" />   
+    <xacro:insert_block name="aileron_inertia" />
+  </xacro:control_surface>
+-->
+
+
+  <!-- Instantiate the flaps -->
+  <xacro:control_surface
+    robot_namespace="${namespace}"
+    surface_name="flap_left"
+    parent="${namespace}/base_link"
+    mass_surface="${mass_flap}"
+    min_angle="${flap_min_angle}"
+    max_angle="${flap_max_angle}"
+    color="${flap_color}"
+    use_mesh_file="${use_mesh}"
+    mesh_file="package://rotors_description/meshes/techpod/techpod_flap_right.dae"
+    surface_length="${flap_length}"
+    surface_width="${flap_width}"
+    surface_height="${flap_height}">
+    <axis xyz="0 -1 0" />   <!-- Joint axis -->
+    <origin xyz="-${flap_offset_x} ${flap_offset_y} ${flap_offset_z}" rpy="0 0 ${PI}" />   <!-- Joint origin -->
+    <origin xyz="0 0 0" rpy="0 0 0" />   <!-- Link origin -->
+    <xacro:insert_block name="flap_inertia" />
+  </xacro:control_surface>
+
+
+  <xacro:control_surface
+    robot_namespace="${namespace}"
+    surface_name="flap_right"
+    parent="${namespace}/base_link"
+    mass_surface="${mass_flap}"
+    min_angle="${flap_min_angle}"
+    max_angle="${flap_max_angle}"
+    color="${flap_color}"
+    use_mesh_file="${use_mesh}"
+    mesh_file="package://rotors_description/meshes/techpod/techpod_flap_right.dae"
+    surface_length="${flap_length}"
+    surface_width="${flap_width}"
+    surface_height="${flap_height}">
+    <axis xyz="0 1 0" />   <!-- Joint axis -->
+    <origin xyz="${flap_offset_x} -${flap_offset_y} ${flap_offset_z}" rpy="0 0 0" />
+    <origin xyz="0 0 0" rpy="0 0 0" />   <!-- Link origin -->
+    <xacro:insert_block name="flap_inertia" />
+  </xacro:control_surface>
+
 
 </robot>

@@ -27,6 +27,13 @@
       izz="${0.0833333 * mass * (x*x + y*y)}" />
   </xacro:macro>
 
+  <!-- Macro for the inertia of a cylinder -->
+  <xacro:macro name="cylinder_inertia" params="r h mass">
+    <inertia ixx="${0.0833333 * mass * (3*r*r + h*h)}" ixy="0.0" ixz="0.0"
+      iyy="${0.0833333 * mass * (3*r*r + h*h)}" iyz="0.0"
+      izz="${0.5 * mass * r * r}" />
+  </xacro:macro>
+
   <!-- Macro for the inertial properties of a box -->
   <xacro:macro name="box_inertial" params="x y z mass *origin">
     <inertial>
@@ -178,4 +185,55 @@
       <material>Gazebo/${color}</material>
     </gazebo>
   </xacro:macro>
+
+  <!-- Control surface joint and link -->
+  <xacro:macro name="control_surface"
+    params="robot_namespace surface_name parent mass_surface min_angle
+      max_angle color use_mesh_file mesh_file surface_length surface_width
+      surface_height *axis *joint_origin *link_origin *inertia">
+    <joint name="${robot_namespace}/${surface_name}_joint" type="revolute">
+      <xacro:insert_block name="joint_origin" />
+      <xacro:insert_block name="axis" />
+      <parent link="${parent}" />
+      <child link="${robot_namespace}/${surface_name}" />
+      <limit upper="${max_angle}" lower="${min_angle}" effort="0" velocity="0" />
+    </joint>
+
+    <link name="${robot_namespace}/${surface_name}">
+      <inertial>
+        <xacro:insert_block name="link_origin" />
+        <mass value="${mass_surface}" />
+        <xacro:insert_block name="inertia" />
+      </inertial>
+      <visual>
+        <xacro:insert_block name="link_origin" />
+        <geometry>
+          <xacro:if value="${use_mesh_file}">
+            <mesh filename="${mesh_file}" scale="1 1 1" />
+          </xacro:if>
+          <xacro:unless value="${use_mesh_file}">
+            <box size="${surface_length} ${surface_width} ${surface_height}" />
+          </xacro:unless>
+        </geometry>
+      </visual>
+      <collision>
+        <xacro:insert_block name="link_origin" />
+        <geometry>
+          <xacro:if value="${use_mesh_file}">
+            <mesh filename="${mesh_file}" scale="1 1 1" />
+          </xacro:if>
+          <xacro:unless value="${use_mesh_file}">
+            <box size="${surface_length} ${surface_width} ${surface_height}" />
+          </xacro:unless>
+        </geometry>
+      </collision>
+    </link>
+
+    <gazebo reference="${robot_namespace}/${surface_name}">
+      <material>Gazebo/${color}</material>
+    </gazebo>
+  </xacro:macro>
+
+
+
 </robot>
