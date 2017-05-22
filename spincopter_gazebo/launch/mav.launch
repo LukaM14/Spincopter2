@@ -10,7 +10,7 @@
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(find spincopter_gazebo)/worlds/$(arg world_name).world"/>
     <!-- <arg name="debug" value="true" /> -->
-    <arg name="paused" value="true" />
+    <arg name="paused" value="false" />
     <!-- <arg name="gui" value="false" /> -->
   </include>
 
@@ -23,4 +23,9 @@
       <arg name="log_file" value="$(arg log_file)"/>
     </include>
   </group>
+
+    <!-- start control stack   -->
+  <include file="$(find spincopter_control)/launch/spincopter_control.launch"/>
+
+
 </launch>
